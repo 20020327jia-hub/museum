@@ -7,14 +7,48 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <main class="container">
+    <!-- Home Screen -->
+    <main id="home-screen" class="screen active">
         <h1 class="title">Echoes of Justice</h1>
-        <button class="start-btn" onclick="location.href='#'">Start</button>
-        <!-- 新增的次要按钮 -->
-        <button class="map-btn" id="openMapBtn">View Map</button>
+        <div class="welcome-text">
+            <p>Welcome to the National Justice Museum. Before you step into the shadows of the past, we must uncover how you connect with history.</p>
+        </div>
+        <!-- 增加了带延迟的淡入动画类 -->
+        <button class="start-btn delayed-fade-1" id="startBtn">Start</button>
+        <button class="map-btn open-map-btn delayed-fade-2">View Map</button>
     </main>
 
-    <!-- 地图弹窗 (默认隐藏) -->
+    <!-- Quiz Screen -->
+    <section id="quiz-screen" class="screen">
+        <div class="progress-bar">Question <span id="current-q-num">1</span> / 3</div>
+        
+        <div class="question-container" id="question-box">
+            <!-- Questions injected by JS -->
+        </div>
+        
+        <div class="options-container">
+            <button class="option-btn" id="optionA">
+                <span class="opt-en" id="optA-en">Option A</span>
+            </button>
+            <button class="option-btn" id="optionB">
+                <span class="opt-en" id="optB-en">Option B</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- Result Screen -->
+    <section id="result-screen" class="screen">
+        <h1 class="result-title" id="result-title">Result Title</h1>
+        <div class="result-desc">
+            <p id="result-desc-en">Description...</p>
+        </div>
+        <div class="task-box">
+            <p id="result-task-en"> Your First Task...</p>
+        </div>
+        <button class="map-btn open-map-btn" style="margin-top: 3rem;">View Map</button>
+    </section>
+
+    <!-- Map Modal -->
     <div id="mapModal" class="modal">
         <div class="modal-content">
             <img src="map1.jpg" alt="Venue Map" class="map-img">
@@ -22,7 +56,6 @@
         </div>
     </div>
 
-    <!-- 引入 JavaScript -->
     <script src="script.js"></script>
 </body>
 </html>
