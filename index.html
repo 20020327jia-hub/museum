@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Echoes of Justice</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="container">
+        <h1 class="title">Echoes of Justice</h1>
+        <button class="start-btn" onclick="location.href='#'">Start</button>
+        <!-- 新增的次要按钮 -->
+        <button class="map-btn" id="openMapBtn">View Map</button>
+    </main>
+
+    <!-- 地图弹窗 (默认隐藏) -->
+    <div id="mapModal" class="modal">
+        <div class="modal-content">
+            <img src="map1.jpg" alt="Venue Map" class="map-img">
+            <button id="closeMapBtn" class="close-btn">Close</button>
+        </div>
+    </div>
+
+    <!-- 引入 JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>

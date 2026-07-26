@@ -1,0 +1,151 @@
+:root {
+    --bg-color: #0a0a0a;
+    --text-primary: #e0e0e0;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    overscroll-behavior-y: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 2rem;
+    animation: fadeIn 1.5s ease-in-out;
+}
+
+.title {
+    font-family: 'Georgia', serif;
+    font-size: 2.2rem;
+    font-weight: normal;
+    letter-spacing: 0.1em;
+    text-align: center;
+    margin-bottom: 4rem;
+    text-transform: uppercase;
+    color: #f5f5f5;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+}
+
+.start-btn {
+    background-color: transparent;
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 1rem 3.5rem;
+    font-size: 1.1rem;
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 48px; 
+    min-width: 160px;
+}
+
+.start-btn:active {
+    background-color: var(--text-primary);
+    color: var(--bg-color);
+    transform: scale(0.97);
+}
+
+/* --- 新增：View Map 按钮样式 --- */
+.map-btn {
+    background-color: transparent;
+    color: rgba(224, 224, 224, 0.5); /* 降低对比度以弱化视觉层级 */
+    border: none;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    min-height: 48px; /* 保证触控区域 */
+}
+
+.map-btn:active {
+    color: var(--text-primary);
+}
+
+/* --- 新增：地图弹窗样式 --- */
+.modal {
+    display: none; /* 默认隐藏 */
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(5, 5, 5, 0.95); /* 深色高对比度背景，聚焦地图 */
+    backdrop-filter: blur(5px); /* 背景模糊，增强层级感 */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* 配合 JS 控制显示与淡入 */
+.modal.show {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 90%;
+    max-width: 500px;
+}
+
+.map-img {
+    width: 100%;
+    max-height: 70vh; /* 保证在各种手机屏幕上都不会溢出 */
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8); /* 悬浮阴影 */
+    margin-bottom: 2rem;
+    /* 可选：如果你觉得原地图太亮，可以取消下面这行的注释来降低图片亮度，贴合暗黑主题 */
+    /* filter: brightness(0.8) contrast(1.1); */
+}
+
+.close-btn {
+    background-color: transparent;
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.8rem 2.5rem;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 48px;
+}
+
+.close-btn:active {
+    background-color: var(--text-primary);
+    color: var(--bg-color);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
