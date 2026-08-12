@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             img: "flooging blook.jpg",
             pw: "1863",
             prompt: "Look at the physical plaque.<br>Enter the code:",
-            detNarrative: "This block was introduced to enforce the Garrotters Act. Read the museum plaque carefully. What specific crimes led a convict to be strapped to this block? / 这台刑具是为了执行《绞刑法》而引入的。仔细阅读说明牌，犯了什么具体罪行的人会被绑在这里？",
+            detNarrative: "This block was introduced to enforce the Garrotters Act. Read the museum plaque carefully. What specific crimes led a convict to be strapped to this block? ",
             detOptions: ["Treason and Murder", "Robbery and Strangulation", "Debt and Fraud"],
             detCorrectIndex: 1,
             detFeedback: "Correct. The Garrotters Act specifically targeted violent robberies involving strangulation.",
