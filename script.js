@@ -12,8 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     preloadImages();
 
-   // ==========================================
-    // 🎛️ 全局音频控制面板 (Audio Manager)
+   // =// ==========================================
+    // 🎛️ 全局音频控制面板 (Audio Manager) - 稳定纯净版
     // ==========================================
     const AudioManager = {
         config: {
@@ -38,52 +38,23 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         currentBGM: null, 
-        unlocked: false, // 新增：标记是否已经为手机端解锁过音频
 
-        // 新增：移动端音频全局解锁黑科技 (完美防漏音版)
-        unlockAllAudio: function() {
-            if (this.unlocked) return;
-            Object.values(this.elements).forEach(track => {
-                if (track && typeof track.play === 'function') {
-                    // 【关键修复】：绝对零度静音。用 volume = 0 替代 muted，彻底断绝漏音的可能
-                    track.volume = 0; 
-                    
-                    let playPromise = track.play();
-                    if (playPromise !== undefined) {
-                        playPromise.then(() => {
-                            track.pause();
-                            track.currentTime = 0;
-                            // 注意这里：我们不需要把 volume 调回来。
-                            // 因为后续真正触发 AudioManager.playSFX('whip') 时，
-                            // 代码会自动重新将音量设置为 this.config.sfx * this.config.master
-                        }).catch(() => {});
-                    }
-                }
-            });
-            this.unlocked = true;
-        },
-
-        // 切换静音状态 (终极物理静音版)
+        // 【修复点 1】：终极暴力静音法
         toggleMute: function() {
             this.config.isMuted = !this.config.isMuted;
             this.config.master = this.config.isMuted ? 0.0 : 1.0;
 
-            // 【关键修复】：遍历所有在管家这里注册过的音频元素，一刀切全部强行物理静音
-            Object.values(this.elements).forEach(track => {
-                if (track && typeof track.pause === 'function') {
-                    track.muted = this.config.isMuted;
-                }
+            // 直接绕过对象，暴力搜索网页上所有的 <audio> 标签，全部掐断
+            const allAudioTags = document.querySelectorAll('audio');
+            allAudioTags.forEach(track => {
+                track.muted = this.config.isMuted;
             });
 
-            // 保留 BGM 的音量同步逻辑，作为双保险
-            if (this.currentBGM) {
-                this.currentBGM.volume = this.config.bgm * this.config.master;
-            }
-
             // 同步更新右上角的 UI 图标状态
-            if (this.elements.muteBtn) {
-                this.elements.muteBtn.innerText = this.config.isMuted ? '🔇' : '🔊';
-                this.elements.muteBtn.classList.toggle('muted', this.config.isMuted);
+            const muteBtn = document.getElementById('muteToggle');
+            if (muteBtn) {
+                muteBtn.innerText = this.config.isMuted ? '🔇' : '🔊';
+                muteBtn.classList.toggle('muted', this.config.isMuted);
             }
         },
 
@@ -123,28 +94,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- 全局点击事件委托 ---
-    document.body.addEventListener('click', (e) => {
-        // 新增：只要用户在网页上点了任何一个地方（比如点击了首页的 Enter），立刻解锁全站声音！
-        AudioManager.unlockAllAudio();
-
-        if (e.target.closest('#muteToggle')) {
-            AudioManager.toggleMute();
-            return; 
-        }
-        if (e.target.closest('button')) {
-            AudioManager.playUI();
-        }
-    });
-
     // ==========================================
     // 监听全局事件 (静音切换与 UI 音效)
     // ==========================================
     document.body.addEventListener('click', (e) => {
+        // 【修复点 2】：彻底删除了导致翻车的 unlockAllAudio();
+        
+        // 如果点击了静音图标，立刻执行静音逻辑
         if (e.target.closest('#muteToggle')) {
             AudioManager.toggleMute();
             return;
         }
+        
+        // 如果点击了普通按钮，播放 UI 滴答声
         if (e.target.closest('button')) {
             AudioManager.playUI();
         }
