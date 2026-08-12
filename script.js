@@ -493,17 +493,20 @@ document.addEventListener('DOMContentLoaded', () => {
             wipeArea.addEventListener('touchmove', handleWipe, { passive: false });
         }
 
+        // --- 类型 3：高级全屏视差特效 (专属于 Pillory 颈手枷) ---
         else if (data.ghostType === 'swipe') {
-            // 隐藏页面上方的默认静态展品图片，接管视觉
+            
             document.getElementById('artifactImg').style.display = 'none';
 
-            // 注入视差 DOM
             container.innerHTML = `
                 <div id="parallax-container" class="parallax-container">
                     <div id="eyes-layer"></div>
                     <img src="${data.img}" id="pillory-parallax-img">
                     <div id="instruction-text" style="position: absolute; top: 20%; z-index: 3; font-size: 1.1rem; text-align: center; opacity: 0.8; transition: opacity 1s; pointer-events: none;">Drag to look around...<br>They are watching you.</div>
-                    <div id="flash-overlay"></div>
+                    <div id="flash-overlay-pillory" class="flash-overlay-pillory"></div>
+                    <div id="pillory-ending-ui" style="position: absolute; z-index: 11; opacity: 0; pointer-events: none; transition: opacity 2s ease-in; text-align: center; width: 80%;">
+                        <p style="font-size: 1.2rem; line-height: 1.6; font-style: italic; margin-bottom: 3rem; text-shadow: 0 0 10px rgba(255,255,255,0.2);">"Locked in the wood, their hateful stares were the true torture."<br><br>被锁在木头里，他们充满恨意的凝视才是真正的折磨。</p>
+                    </div>
                 </div>
             `;
             
@@ -511,21 +514,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const eyesLayer = document.getElementById('eyes-layer');
             const imgEl = document.getElementById('pillory-parallax-img');
             const instructionText = document.getElementById('instruction-text');
-            const flashOverlay = document.getElementById('flash-overlay');
+            const flashOverlay = document.getElementById('flash-overlay-pillory');
+            const endingUI = document.getElementById('pillory-ending-ui');
             const angryAudio = document.getElementById('angryAudio');
-            const breathAudio = document.getElementById('relievedBreathAudio');
             
             let isDragging = false, isFinished = false, audioStarted = false;
             let startX = 0, startY = 0, currentX = 0, currentY = 0, accumulatedDist = 0;
-            const THRESHOLD = 2000; // 拖拽阈值
+            
+            // 【修复 2：降低阈值】将触发结局的像素距离从 2000 下调到 800，确保电脑鼠标也能轻松触发
+            const THRESHOLD = 800; 
 
-            // 动态生成红眼
             for (let i = 0; i < 35; i++) {
                 const eye = document.createElement('div');
                 eye.className = 'angry-eyes';
                 eye.style.left = Math.random() * 95 + '%';
                 eye.style.top = Math.random() * 95 + '%';
-                eye.style.transform = `scale(${0.5 + Math.random() * 0.8})`;
+                eye.style.transform = `scale(${0.5 + Math.random() * 0.8})`; 
                 eyesLayer.appendChild(eye);
             }
             const allEyes = document.querySelectorAll('.angry-eyes');
@@ -534,11 +538,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isFinished) return;
                 isDragging = true;
                 const touch = e.touches ? e.touches[0] : e;
-                startX = touch.clientX - currentX; startY = touch.clientY - currentY;
+                startX = touch.clientX - currentX; 
+                startY = touch.clientY - currentY;
                 
-                instructionText.style.opacity = 0;
+                instructionText.style.opacity = 0; 
+                
                 if (!audioStarted && angryAudio) {
-                    angryAudio.volume = 0; 
+                    try { angryAudio.volume = 0; } catch(err){}
                     angryAudio.play().catch(()=>{});
                     audioStarted = true;
                 }
@@ -560,13 +566,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 eyesLayer.style.transform = `translate3d(${-currentX * 0.4}px, ${-currentY * 0.4}px, 0)`;
 
                 const progress = Math.min(accumulatedDist / THRESHOLD, 1);
-                
-                // 【修复点 1】：将 progress * 1.5 改为 progress * 3
-                // 这样红眼会在拖拽的前 33% 阶段就迅速达到最亮，并一直死死盯着你
                 allEyes.forEach(eye => eye.style.opacity = progress * 3);
                 
                 if (audioStarted && angryAudio) {
-                    angryAudio.volume = Math.min(progress, 1.0) * AudioManager.config.master;
+                    try { angryAudio.volume = Math.min(progress, 1.0) * AudioManager.config.master; } catch(err){}
                 }
 
                 if (accumulatedDist >= THRESHOLD) {
@@ -575,19 +578,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     flashOverlay.classList.add('flash-active-pillory');
                     allEyes.forEach(eye => eye.style.display = 'none');
                     
-                    // 【修复点 2】：安全递减音量，防止变成负数导致浏览器卡死崩溃
+                    // 【修复 1：绝对次数淡出法】使用定死执行 20 次倒数的方式，彻底绕开 iOS 的音量锁死 Bug
                     if (angryAudio) {
+                        let steps = 20;
                         let fade = setInterval(() => {
-                            let newVolume = angryAudio.volume - 0.05;
-                            if (newVolume > 0) {
-                                angryAudio.volume = newVolume; // 安全赋值
+                            steps--;
+                            if (steps > 0) {
+                                // 电脑/安卓端依然能享受到音量渐渐变小的效果
+                                try { angryAudio.volume = (steps / 20) * AudioManager.config.master; } catch(err){}
                             } else {
-                                angryAudio.volume = 0; // 彻底归零
-                                angryAudio.pause();    // 安全暂停
+                                // 不管支持不支持改变音量，20次一到，强行终止声音！
+                                angryAudio.pause();
                                 angryAudio.currentTime = 0;
-                                clearInterval(fade);   // 销毁定时器
+                                clearInterval(fade);
                             }
-                        }, 50);
+                        }, 50); // 20次 * 50毫秒 = 1秒内结束
                     }
                     
                     setTimeout(() => { 
@@ -604,7 +609,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const endDrag = () => isDragging = false;
 
-            // 绑定拖拽事件
             parallaxBox.addEventListener('mousedown', startDrag);
             parallaxBox.addEventListener('touchstart', startDrag, {passive: false});
             window.addEventListener('mousemove', doDrag);
@@ -612,7 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.addEventListener('mouseup', endDrag);
             window.addEventListener('touchend', endDrag);
         }
-        
+
         else if (data.ghostType === 'tap') {
             const tapBtn = document.createElement('button');
             tapBtn.className = 'tap-btn';
