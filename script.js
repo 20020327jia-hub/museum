@@ -505,7 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div id="instruction-text" style="position: absolute; top: 20%; z-index: 3; font-size: 1.1rem; text-align: center; opacity: 0.8; transition: opacity 1s; pointer-events: none;">Drag to look around...<br>They are watching you.</div>
                     <div id="flash-overlay-pillory" class="flash-overlay-pillory"></div>
                     <div id="pillory-ending-ui" style="position: absolute; z-index: 11; opacity: 0; pointer-events: none; transition: opacity 2s ease-in; text-align: center; width: 80%;">
-                        <p style="font-size: 1.2rem; line-height: 1.6; font-style: italic; margin-bottom: 3rem; text-shadow: 0 0 10px rgba(255,255,255,0.2);">"Locked in the wood, their hateful stares were the true torture."<br><br>被锁在木头里，他们充满恨意的凝视才是真正的折磨。</p>
+                        <p style="font-size: 1.2rem; line-height: 1.6; font-style: italic; margin-bottom: 3rem; text-shadow: 0 0 10px rgba(255,255,255,0.2);">"Locked in the wood, their hateful stares were the true torture."<br><br></p>
                     </div>
                 </div>
             `;
@@ -650,7 +650,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let whipTimer = null;
             let isPunished = false;
-            let audioUnlocked = false; 
+            let audioUnlocked = false; // 用来标记鞭子音频是否已经对手机解锁
 
             const resetTension = () => {
                 if (isPunished) return;
@@ -662,29 +662,40 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             const executeWhip = () => {
-                AudioManager.playSFX('whip');
+                AudioManager.playSFX('whip'); 
 
                 artifactScreen.classList.remove('shake-active');
-                
                 flashOverlay.classList.remove('flash-active');
                 void flashOverlay.offsetWidth; 
                 flashOverlay.classList.add('flash-active');
-
                 whipSlash.classList.remove('slash-active');
                 void whipSlash.offsetWidth;
                 whipSlash.classList.add('slash-active');
-
                 hole1.style.opacity = 0;
                 hole2.style.opacity = 0;
 
                 setTimeout(() => {
-                    completeGhost();
+                    completeGhost(); 
                 }, 500); 
             };
 
+            // 核心事件监听：移动端双点长按
             floggingArea.addEventListener('touchstart', (e) => {
                 e.preventDefault(); 
                 if (isPunished) return;
+
+                // 【关键修复】：只为鞭子做专属的无声解锁，悄悄骗过 iOS 系统
+                if (!audioUnlocked && whipAudio) {
+                    whipAudio.volume = 0; // 绝对零度静音，防止漏音
+                    let p = whipAudio.play();
+                    if (p !== undefined) {
+                        p.then(() => { 
+                            whipAudio.pause(); 
+                            whipAudio.currentTime = 0; 
+                        }).catch(() => {});
+                    }
+                    audioUnlocked = true;
+                }
 
                 if (e.touches.length === 2 && !whipTimer) {
                     hole1.classList.add('active');
@@ -703,8 +714,20 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             floggingArea.addEventListener('touchcancel', resetTension);
 
+            // 电脑端鼠标降级兼容
             floggingArea.addEventListener('mousedown', () => {
                 if (isPunished) return;
+                
+                // 电脑端同样加上解锁逻辑，做到双端统一
+                if (!audioUnlocked && whipAudio) {
+                    whipAudio.volume = 0;
+                    let p = whipAudio.play();
+                    if (p !== undefined) {
+                        p.then(() => { whipAudio.pause(); whipAudio.currentTime = 0; }).catch(() => {});
+                    }
+                    audioUnlocked = true;
+                }
+
                 hole1.classList.add('active');
                 hole2.classList.add('active');
                 artifactScreen.classList.add('shake-active');
