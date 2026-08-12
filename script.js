@@ -63,12 +63,24 @@ document.addEventListener('DOMContentLoaded', () => {
             this.unlocked = true;
         },
 
+        // 切换静音状态 (终极物理静音版)
         toggleMute: function() {
             this.config.isMuted = !this.config.isMuted;
             this.config.master = this.config.isMuted ? 0.0 : 1.0;
+
+            // 【关键修复】：遍历所有在管家这里注册过的音频元素，一刀切全部强行物理静音
+            Object.values(this.elements).forEach(track => {
+                if (track && typeof track.pause === 'function') {
+                    track.muted = this.config.isMuted;
+                }
+            });
+
+            // 保留 BGM 的音量同步逻辑，作为双保险
             if (this.currentBGM) {
                 this.currentBGM.volume = this.config.bgm * this.config.master;
             }
+
+            // 同步更新右上角的 UI 图标状态
             if (this.elements.muteBtn) {
                 this.elements.muteBtn.innerText = this.config.isMuted ? '🔇' : '🔊';
                 this.elements.muteBtn.classList.toggle('muted', this.config.isMuted);
