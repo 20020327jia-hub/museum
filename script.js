@@ -546,10 +546,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const doDrag = (e) => {
                 if (!isDragging || isFinished) return;
-                if (e.cancelable) e.preventDefault();
+                if (e.cancelable) e.preventDefault(); 
                 
                 const touch = e.touches ? e.touches[0] : e;
-                const newX = touch.clientX - startX; const newY = touch.clientY - startY;
+                const newX = touch.clientX - startX; 
+                const newY = touch.clientY - startY;
+                
                 const moveDist = Math.sqrt(Math.pow(newX - currentX, 2) + Math.pow(newY - currentY, 2));
                 accumulatedDist += moveDist;
                 currentX = newX; currentY = newY;
@@ -558,27 +560,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 eyesLayer.style.transform = `translate3d(${-currentX * 0.4}px, ${-currentY * 0.4}px, 0)`;
 
                 const progress = Math.min(accumulatedDist / THRESHOLD, 1);
-                allEyes.forEach(eye => eye.style.opacity = progress * 1.5);
-                if (audioStarted && angryAudio) angryAudio.volume = Math.min(progress, 1.0) * AudioManager.config.master;
+                
+                // 【修复点 1】：将 progress * 1.5 改为 progress * 3
+                // 这样红眼会在拖拽的前 33% 阶段就迅速达到最亮，并一直死死盯着你
+                allEyes.forEach(eye => eye.style.opacity = progress * 3);
+                
+                if (audioStarted && angryAudio) {
+                    angryAudio.volume = Math.min(progress, 1.0) * AudioManager.config.master;
+                }
 
                 if (accumulatedDist >= THRESHOLD) {
                     isFinished = true;
-                    flashOverlay.classList.add('flash-active');
+                    
+                    flashOverlay.classList.add('flash-active-pillory');
                     allEyes.forEach(eye => eye.style.display = 'none');
                     
+                    // 【修复点 2】：安全递减音量，防止变成负数导致浏览器卡死崩溃
                     if (angryAudio) {
                         let fade = setInterval(() => {
-                            if (angryAudio.volume > 0.05) angryAudio.volume -= 0.05;
-                            else { angryAudio.pause(); clearInterval(fade); }
+                            let newVolume = angryAudio.volume - 0.05;
+                            if (newVolume > 0) {
+                                angryAudio.volume = newVolume; // 安全赋值
+                            } else {
+                                angryAudio.volume = 0; // 彻底归零
+                                angryAudio.pause();    // 安全暂停
+                                angryAudio.currentTime = 0;
+                                clearInterval(fade);   // 销毁定时器
+                            }
                         }, 50);
                     }
-                    setTimeout(() => { if (breathAudio) AudioManager.playSFX('relievedBreathAudio'); }, 300);
-                    setTimeout(completeGhost, 1000); // 1秒后显示结局文字和返回按钮
+                    
+                    setTimeout(() => { 
+                        AudioManager.playSFX('relievedBreath'); 
+                    }, 300);
+                    
+                    setTimeout(() => {
+                        endingUI.style.opacity = 1;
+                        endingUI.style.pointerEvents = 'auto';
+                        document.getElementById('returnHubBtn').style.display = 'block';
+                    }, 1000); 
                 }
             };
 
             const endDrag = () => isDragging = false;
 
+            // 绑定拖拽事件
             parallaxBox.addEventListener('mousedown', startDrag);
             parallaxBox.addEventListener('touchstart', startDrag, {passive: false});
             window.addEventListener('mousemove', doDrag);
@@ -586,8 +612,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.addEventListener('mouseup', endDrag);
             window.addEventListener('touchend', endDrag);
         }
-            
-
+        
         else if (data.ghostType === 'tap') {
             const tapBtn = document.createElement('button');
             tapBtn.className = 'tap-btn';
@@ -597,7 +622,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let taps = 0;
             tapBtn.addEventListener('click', () => {
                 taps++;
-                if (taps >= 3) completeGhost();
+                if (taps >= 3) completeGhost(); 
             });
         }
         
