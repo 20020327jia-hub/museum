@@ -7,52 +7,129 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Home Screen -->
+    <!-- 新增：全局声音控制开关 (固定在右上角) -->
+    <div id="muteToggle" class="mute-toggle">🔊</div>
+    <!-- 1. Home Screen -->
     <main id="home-screen" class="screen active">
-        <h1 class="title">Echoes of Justice</h1>
-        <div class="welcome-text">
-            <p>Welcome to the National Justice Museum. Before you step into the shadows of the past, we must uncover how you connect with history.</p>
+        <div class="title-group">
+            <h1 class="title">Echoes of Justice</h1>
+            <h2 class="subtitle">National Justice Museum</h2>
         </div>
-        <!-- 增加了带延迟的淡入动画类 -->
-        <button class="start-btn delayed-fade-1" id="startBtn">Start</button>
+        <button class="start-btn delayed-fade-1" id="enterBtn">Enter</button>
         <button class="map-btn open-map-btn delayed-fade-2">View Map</button>
     </main>
 
-    <!-- Quiz Screen -->
+    <!-- 2. Prologue Screen -->
+    <section id="prologue-screen" class="screen">
+        <div class="welcome-text">
+            <p>Welcome to the National Justice Museum. Before you step into the shadows of the past, we must uncover how you connect with history.</p>
+        </div>
+        <button class="start-btn" id="discoverBtn">Discover Your Path</button>
+    </section>
+
+    <!-- 3. Quiz Screen -->
     <section id="quiz-screen" class="screen">
         <div class="progress-bar">Question <span id="current-q-num">1</span> / 3</div>
-        
-        <div class="question-container" id="question-box">
-            <!-- Questions injected by JS -->
-        </div>
-        
+        <div class="question-container" id="question-box"></div>
         <div class="options-container">
-            <button class="option-btn" id="optionA">
-                <span class="opt-en" id="optA-en">Option A</span>
-            </button>
-            <button class="option-btn" id="optionB">
-                <span class="opt-en" id="optB-en">Option B</span>
-            </button>
+            <button class="option-btn" id="optionA"><span class="opt-en" id="optA-en">Option A</span></button>
+            <button class="option-btn" id="optionB"><span class="opt-en" id="optB-en">Option B</span></button>
         </div>
     </section>
 
-    <!-- Result Screen -->
+    <!-- 4. Result Screen -->
     <section id="result-screen" class="screen">
         <h1 class="result-title" id="result-title">Result Title</h1>
+        <div class="result-image-container">
+            <img src="" alt="Role Identity" id="result-img" class="result-img">
+        </div>
+
         <div class="result-desc">
             <p id="result-desc-en">Description...</p>
         </div>
         <div class="task-box">
-            <p id="result-task-en"> Your First Task...</p>
+            <p id="result-task-en">📍 Your First Task: Head to the Punishment Display on the Ground Floor...</p>
         </div>
-        <button class="map-btn open-map-btn" style="margin-top: 3rem;">View Map</button>
+        <button class="start-btn" id="toHubBtn" style="margin-top: 2rem;">Enter the Museum</button>
     </section>
 
-    <!-- Map Modal -->
+    <!-- 5. Artifact Hub Screen -->
+    <section id="hub-screen" class="screen">
+        <h2 class="hub-title">Artifacts</h2>
+        <ul class="artifact-list">
+            <li class="artifact-item active-artifact" id="item-0" data-id="0">1. The Gibbet</li>
+            <li class="artifact-item locked" id="item-1" data-id="1">2. Scold's Bridle</li>
+            <li class="artifact-item locked" id="item-2" data-id="2">3. Flogging Block</li>
+            <li class="artifact-item locked" id="item-3" data-id="3">4. Pillory</li>
+            <li class="artifact-item locked" id="item-4" data-id="4">5. Cat-o-Nine-Tails</li>
+        </ul>
+        
+        <nav class="bottom-nav">
+            <button class="nav-btn open-map-btn">Map</button>
+            <button class="nav-btn primary-nav-btn" id="navUnlockBtn">Unlock Artifact</button>
+        </nav>
+    </section>
+
+    <!-- 6. Unified Artifact Interactive Screen -->
+    <section id="artifact-screen" class="screen artifact-screen">
+        <div class="artifact-header">
+            <img src="" alt="Artifact" id="artifactImg" class="artifact-img">
+        </div>
+
+        <div id="detective-ui" class="artifact-branch">
+            <p class="artifact-narrative" id="det-narrative"></p>
+            <div class="mcq-container" id="det-mcq"></div>
+            <div class="feedback-msg" id="det-feedback"></div>
+        </div>
+
+        <div id="ghost-ui" class="artifact-branch ghost-vibe">
+            <div id="ghost-interaction-area" style="width: 100%; display: flex; flex-direction: column; align-items: center;"></div>
+            <div class="feedback-msg ghost-feedback" id="ghost-feedback"></div>
+        </div>
+
+        <button class="start-btn return-hub-btn" id="returnHubBtn" style="display: none; margin-top: 2rem;">Return to Hub</button>
+    </section>
+
+    <!-- 幽灵线: 血红闪屏层与鞭打音效 -->
+    <div id="bloodFlash" class="blood-flash"></div>
+    <!-- 背景音乐 (BGM) -->
+    <audio id="bgm1" src="bgm1.mp3" loop preload="auto"></audio>
+    <audio id="bgm2" src="bgm2.mp3" loop preload="auto"></audio>
+    <audio id="bgm3" src="bgm3.mp3" loop preload="auto"></audio>
+    <!-- 交互音效 -->
+    <audio id="whipAudio" src="whip.mp3" preload="auto"></audio>
+    <audio id="btnClickAudio" src="button.mp3" preload="auto"></audio>
+    <!-- 新增：The Gibbet 幽灵线专属音效 -->
+    <audio id="gazhiAudio" src="gazhi.mp3" preload="auto"></audio>
+    <audio id="breathAudio" src="breath.mp3" loop preload="auto"></audio>
+    <!-- 新增 Pillory 专属音效 -->
+    <audio id="angryAudio" src="angry.mp3" loop preload="auto"></audio>
+    <audio id="relievedBreathAudio" src="breath.mp3" preload="auto"></audio>
+
+    <!-- Modals -->
     <div id="mapModal" class="modal">
         <div class="modal-content">
             <img src="map1.jpg" alt="Venue Map" class="map-img">
-            <button id="closeMapBtn" class="close-btn">Close</button>
+            <button class="close-btn" id="closeMapBtn">Close</button>
+        </div>
+    </div>
+
+    <div id="headphoneModal" class="modal">
+        <div class="modal-content text-modal">
+            <p style="font-size: 1.2rem; margin-bottom: 2rem; text-align: center; font-weight: 300;">For the best immersive experience, please put on your headphones.</p>
+            <button class="start-btn" id="headphoneReadyBtn">I'm Ready</button>
+        </div>
+    </div>
+
+    <div id="unlockModal" class="modal">
+        <div class="modal-content text-modal">
+            <p style="font-size: 1.1rem; margin-bottom: 1.5rem; text-align: center; font-weight: 300; line-height: 1.5;" id="unlockPromptText">Look at the physical plaque.<br>Enter the code:</p>
+            <input type="text" id="unlockInput" class="unlock-input" placeholder="Enter code">
+            <p id="unlockError" style="color: #F44336; font-size: 0.9rem; margin-top: 1rem; opacity: 0; transition: opacity 0.3s;">Incorrect code. Look closer.</p>
+            <div class="modal-actions">
+                <button class="close-btn" id="cancelUnlockBtn">Cancel</button>
+                <button class="start-btn" id="submitUnlockBtn">Verify</button>
+            </div>
         </div>
     </div>
 
