@@ -12,8 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     preloadImages();
 
-    // ==========================================
-    //  全局音频控制面板 (Audio Manager)
+   // ==========================================
+    // 🎛️ 全局音频控制面板 (Audio Manager)
     // ==========================================
     const AudioManager = {
         config: {
@@ -32,10 +32,36 @@ document.addEventListener('DOMContentLoaded', () => {
             btnClick: document.getElementById('btnClickAudio'),
             muteBtn: document.getElementById('muteToggle'),
             gazhi: document.getElementById('gazhiAudio'),
-            breath: document.getElementById('breathAudio')
+            breath: document.getElementById('breathAudio'),
+            angry: document.getElementById('angryAudio'),
+            relievedBreath: document.getElementById('relievedBreathAudio')
         },
 
         currentBGM: null, 
+        unlocked: false, // 新增：标记是否已经为手机端解锁过音频
+
+        // 新增：移动端音频全局解锁黑科技 (完美防漏音版)
+        unlockAllAudio: function() {
+            if (this.unlocked) return;
+            Object.values(this.elements).forEach(track => {
+                if (track && typeof track.play === 'function') {
+                    // 【关键修复】：绝对零度静音。用 volume = 0 替代 muted，彻底断绝漏音的可能
+                    track.volume = 0; 
+                    
+                    let playPromise = track.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            track.pause();
+                            track.currentTime = 0;
+                            // 注意这里：我们不需要把 volume 调回来。
+                            // 因为后续真正触发 AudioManager.playSFX('whip') 时，
+                            // 代码会自动重新将音量设置为 this.config.sfx * this.config.master
+                        }).catch(() => {});
+                    }
+                }
+            });
+            this.unlocked = true;
+        },
 
         toggleMute: function() {
             this.config.isMuted = !this.config.isMuted;
@@ -84,6 +110,20 @@ document.addEventListener('DOMContentLoaded', () => {
             track.play().catch(e => console.warn('UI blocked:', e));
         }
     };
+
+    // --- 全局点击事件委托 ---
+    document.body.addEventListener('click', (e) => {
+        // 新增：只要用户在网页上点了任何一个地方（比如点击了首页的 Enter），立刻解锁全站声音！
+        AudioManager.unlockAllAudio();
+
+        if (e.target.closest('#muteToggle')) {
+            AudioManager.toggleMute();
+            return; 
+        }
+        if (e.target.closest('button')) {
+            AudioManager.playUI();
+        }
+    });
 
     // ==========================================
     // 监听全局事件 (静音切换与 UI 音效)
@@ -642,12 +682,6 @@ document.addEventListener('DOMContentLoaded', () => {
             floggingArea.addEventListener('touchstart', (e) => {
                 e.preventDefault(); 
                 if (isPunished) return;
-
-                if (!audioUnlocked && whipAudio) {
-                    whipAudio.volume = 0; 
-                    whipAudio.play().then(() => { whipAudio.pause(); whipAudio.currentTime = 0; }).catch(() => {});
-                    audioUnlocked = true;
-                }
 
                 if (e.touches.length === 2 && !whipTimer) {
                     hole1.classList.add('active');
