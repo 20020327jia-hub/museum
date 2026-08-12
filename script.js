@@ -34,7 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
             gazhi: document.getElementById('gazhiAudio'),
             breath: document.getElementById('breathAudio'),
             angry: document.getElementById('angryAudio'),
-            relievedBreath: document.getElementById('relievedBreathAudio')
+            relievedBreath: document.getElementById('relievedBreathAudio'),
+            step: document.getElementById('stepAudio')
         },
 
         currentBGM: null, 
@@ -617,6 +618,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.addEventListener('touchend', endDrag);
         }
 
+        // --- 类型 4：基础的节奏点击 (例如 Cat-o-Nine-Tails) ---
         else if (data.ghostType === 'tap') {
             const tapBtn = document.createElement('button');
             tapBtn.className = 'tap-btn';
@@ -625,8 +627,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             let taps = 0;
             tapBtn.addEventListener('click', () => {
+                // 【关键新增】：每次点击按钮，立刻播放一次沉重的脚步声
+                AudioManager.playSFX('step');
+                
                 taps++;
-                if (taps >= 3) completeGhost(); 
+                if (taps >= 3) {
+                    // 稍微延时一点点再显示通关文案，让最后一步的脚步声有时间响起
+                    setTimeout(completeGhost, 300); 
+                }
             });
         }
         
